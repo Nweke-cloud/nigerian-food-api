@@ -8,7 +8,7 @@ FROM golang:1.22-alpine AS builder
 WORKDIR /app
 
 # Copy go.mod and go.sum (dependency files)
-COPY go.mod ./
+COPY go.mod go.sum ./
 
 # Download dependencies
 # This happens during build, not during container run
