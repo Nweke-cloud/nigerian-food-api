@@ -76,20 +76,25 @@ json.NewEncoder(w).Encode(response)
 }
 
 func handleHealth(w http.ResponseWriter, r *http.Request) {
-health := map[string]string{
-"status":   "healthy",
-"service":  "nigerian-food-api",
-"database": "connected",
-}
-if db != nil {
-if err := db.Ping(); err != nil {
-health["database"] = "disconnected"
-}
-}
-w.Header().Set("Content-Type", "application/json")
-json.NewEncoder(w).Encode(health)
-}
+	w.Header().Set("Content-Type", "application/json")
 
+	health := map[string]string{
+		"status":   "healthy",
+		"service":  "nigerian-food-api",
+		"database": "connected",
+	}
+	status := http.StatusOK
+
+          if db == nil || db.Ping() != nil {
+                health["status"] = "unhealthy"
+                health["database"] = "disconnected"
+                status = http.StatusServiceUnavailable // 503
+        }
+
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(health)
+}
+ 
 func handleFoods(w http.ResponseWriter, r *http.Request) {
 // If no database, return hardcoded foods
 if db == nil {
@@ -129,7 +134,7 @@ func initDatabase() {
 createTableSQL := `
 CREATE TABLE IF NOT EXISTS foods (
 id SERIAL PRIMARY KEY,
-name VARCHAR(100) NOT NULL,
+name VARCHAR(100) NOT NULL UNIQUE,
 price DECIMAL(10,2) NOT NULL,
 description TEXT
 );
