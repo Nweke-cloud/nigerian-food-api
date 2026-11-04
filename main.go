@@ -20,28 +20,14 @@ Description string `json:"description"`
 
 var db *sql.DB
 
-func init() {
-// Database connection string
-dbURL := os.Getenv("DATABASE_URL")
-if dbURL == "" {
-dbURL = "postgres://postgres:secret@localhost:5432/fooddb?sslmode=disable"
-}
-
+func main() {
+dbURL := getEnv("DATABASE_URL", "postgres://postgres:secret@localhost:5432/fooddb?sslmode=disable")
 var err error
 db, err = sql.Open("postgres", dbURL)
 if err != nil {
-log.Printf("Warning: Could not connect to database: %v", err)
-} else {
-// Test connection
-if err := db.Ping(); err != nil {
-log.Printf("Warning: Database not responding: %v", err)
-} else {
-log.Println("Database connected successfully")
+	log.Printf("Warning: could not open database handle: %v", err)
 }
-}
-}
-
-func main() {
+	
 port := getEnv("PORT", "8080")
 env := getEnv("ENVIRONMENT", "local")
 
@@ -154,7 +140,6 @@ log.Printf("Warning: Could not initialize database: %v", err)
 log.Println("Database initialized successfully")
 }
 }
-
 func getEnv(key, defaultValue string) string {
 if value, exists := os.LookupEnv(key); exists {
 return value
