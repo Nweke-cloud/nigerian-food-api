@@ -28,7 +28,7 @@ jobs:
       - uses: docker/setup-buildx-action@v3
       - name: Log in to Docker Hub
         env:
-          DH_USER$:{{ secrets.DOCKERHUB_USERNAME }}
+          DH_USER: ${{ secrets.DOCKERHUB_USERNAME }}
           DH_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         run:  |
           printf '%s' "$DH_TOKEN" | docker login docker.io -u "$DH_USER" --password-stdin
