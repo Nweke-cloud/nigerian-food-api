@@ -18,9 +18,33 @@ jobs:
         run: go test ./... -v -count=1
       - name: Build binary
         run: go build -o nigerian-food-api main.go
+  
+    integration:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start stack
+        run: docker compose up -d --build --scale api=2
+
+      - name: Wait for healthy API through nginx
+        run: |
+          timeout 120 bash -c 'until curl -sf http://localhost:8080/health; do sleep 3; done'
+
+      - name: Check foods endpoint
+        run: curl -sf http://localhost:8080/api/foods | grep -q "Jollof Rice"
+
+      - name: Dump logs on failure
+        if: failure()
+        run: docker compose logs
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v
 
   publish:
-    needs: test
+    needs: [test, integration]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
